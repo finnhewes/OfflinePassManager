@@ -1,5 +1,5 @@
 from tkinter import *
-import random
+import secrets
 from tkinter import messagebox
 import pyperclip
 import json
@@ -7,20 +7,9 @@ IMG = "logo.png"
 
 
 # ---------------------------- PASSWORD GENERATOR ------------------------------- #
-#   generates a random password with some amount of capital and lowercase letters, numbers, and symbols.
+#   generates a 'true' random, url safe string to serve as our new password
 def generate():
-    letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u',
-               'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
-               'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
-    numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-    symbols = ['!', '#', '$', '%', '&', '(', ')', '*', '+']
-    rand_lets = [random.choice(letters) for _ in letters]
-    rand_nums = [random.choice(numbers) for _ in numbers]
-    rand_syms = [random.choice(symbols) for _ in symbols]
-    #   the amounts below may not work for all password inputs, but should cover most of your bases
-    final_string = rand_syms[:10] + rand_nums[:5] + rand_lets[:5]
-    random.shuffle(final_string)
-    generated_password = (''.join(final_string))
+    generated_password = secrets.token_urlsafe(20)
     #   enters the generated password into the password input box for you so you don't have to copy and paste it in
     pass_ent.insert(0, generated_password)
     #   copies the generated password to your clipboard so you can quickly and easily paste it into the app/web page
