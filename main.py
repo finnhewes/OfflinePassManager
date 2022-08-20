@@ -1,6 +1,6 @@
 from tkinter import *
 import secrets
-from tkinter import messagebox
+from tkinter import messagebox, simpledialog
 import pyperclip
 import json
 IMG = "logo.png"
