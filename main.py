@@ -9,7 +9,7 @@ from tkinter import messagebox, simpledialog
 import pyperclip
 import json
 
-IMG = "logo.png"
+IMG = "logo.png" # I've included the logo file I made in the main repo, but feel free to subsitute your own design
 
 
 # ---------------------------- PASSWORD GENERATOR ------------------------------- #
