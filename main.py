@@ -9,7 +9,7 @@ from tkinter import messagebox, simpledialog
 import pyperclip
 import json
 
-IMG = "logo.png" # I've included the logo file I made in the main repo, but feel free to subsitute your own design
+IMG = "logo.png"  # I've included the logo file I made in the main repo, but feel free to substitute your own design
 
 
 # ---------------------------- PASSWORD GENERATOR ------------------------------- #
@@ -161,11 +161,16 @@ except FileNotFoundError:  # if no master.key file is found, that means this is 
     with open('salt.key', 'wb') as salt_file:  # the salt.key file won't exist either, so we'll create one
         new_salt = secrets.token_urlsafe(16).encode()
         salt_file.write(new_salt)
-
+    with open('username.default', 'w') as user_file:  # collect a username/email to display in the username text box.
+        user_provided = simpledialog.askstring('Welcome :)', "Please enter the username/email that you use\nmost often "
+                                                             "when signing up for services.\n\nThis can be changed for "
+                                                             "individual logins\nif desired.\n\nThis username/email "
+                                                             "will show up\nautomatically when this program opens.")
+        user_file.write(user_provided)
     with open('master.key', 'wb') as master_file:  # we'll also need to create a master.key file here
         password_provided = simpledialog.askstring('Welcome :)', "Please enter a master password.\n"
-                                                                 "This will be what you use to access all of your "
-                                                                 "other passwords, so don't forget it!")
+                                                                 "This will be what you use to access\nall of your "
+                                                                 "other passwords, so\ndon't forget it!")
         password_encoded = password_provided.encode()  # convert entered pass to bytes
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
@@ -188,5 +193,10 @@ finally:  # executes after both the try and except above. We'll use this to gath
     with open('fern.key', 'rb') as f:  # reads fernet.key
         key = f.read()
         fern = Fernet(key)
+
+    with open('username.default', 'r') as username_file:
+        username = username_file.read()
+        em_ent.delete(0, END)
+        em_ent.insert(0, username)
 
 window.mainloop()  # keeps our window open until exited, so that we can successfully interact with our program
