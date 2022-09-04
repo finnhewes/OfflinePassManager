@@ -1,13 +1,13 @@
 from tkinter import *
 import secrets
 import base64
+from tkinter import messagebox, simpledialog
+import pyperclip
+import json
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.fernet import Fernet
-from tkinter import messagebox, simpledialog
-import pyperclip
-import json
 
 IMG = "logo.png"  # I've included the logo file I made in the main repo, but feel free to substitute your own design
 
@@ -62,14 +62,15 @@ def data_search():
                     )
                     generated_key = base64.urlsafe_b64encode(kdf2.derive(master_password_encoded))  # stores our new key
 
-                    with open('master.key', 'r') as m:  # opens saved key file
+                    with open('config.config', 'r') as m:  # opens saved master key file
                         saved_key = m.read().encode()  # compared new key to saved key on file
                         if generated_key == saved_key:
-                            email_data = website_data["email"]
+                            email_data_encrypted = website_data["email"].encode()  # decrypt/decode this
+                            email_data_decrypted = fern.decrypt(email_data_encrypted).decode()
                             password_data_encrypted = website_data["password"].encode()  # decrypt/decode this
                             password_data_decrypted = fern.decrypt(password_data_encrypted).decode()
                             # if we've made it this far, then we've authenticated, and we can display the login info.
-                            messagebox.showinfo(title=website_data, message=f"Login: {email_data}\n"
+                            messagebox.showinfo(title=website_data, message=f"Login: {email_data_decrypted}\n"
                                                                             f"Password:{password_data_decrypted}")
                             web_ent.delete(0, END)  # clears the website field, effectively "resetting" our gui window
 
@@ -80,12 +81,16 @@ def save_entry():
     website = web_ent.get()
     email = em_ent.get()
     password = pass_ent.get()
+
+    email_entry_encoded = email.encode()
+    email_entry_encrypted = fern.encrypt(email_entry_encoded).decode()  # must be decoded to store in json
     password_entry_encoded = password.encode()
-    password_encrypted = fern.encrypt(password_entry_encoded).decode()
+    password_entry_encrypted = fern.encrypt(password_entry_encoded).decode()  # must be decoded to store in json
+
     new_data = {
         website: {
-            "email": email,
-            "password": password_encrypted,
+            "email": email_entry_encrypted,
+            "password": password_entry_encrypted,
         }
     }
     if len(website) <= 1:  # catch invalid website input
@@ -154,11 +159,12 @@ add_but.grid(row=4, column=1, columnspan=2)
 
 # ________________ File Structure Check/Setup _______________ #
 try:
-    with open('master.key', 'r') as master_file:  # looks for the master.key file
+    with open('config.config', 'r') as master_file:  # looks for the master key file, with diversion name
         master_key = master_file.read()
-except FileNotFoundError:  # if no master.key file is found, that means this is the first time running the program, and
+except FileNotFoundError:  # if no master key file is found, that means this is the first time running the program, and
     # some setup is in order. We'll need to create a number of key files to encrypt and decrypt our data
-    with open('salt.key', 'wb') as salt_file:  # the salt.key file won't exist either, so we'll create one
+    with open('gui.config', 'wb') as salt_file:  # the salt key file won't exist either, so we'll create one, and also
+        # obscure the name a little, to be less obvious
         new_salt = secrets.token_urlsafe(16).encode()
         salt_file.write(new_salt)
     with open('username.default', 'w') as user_file:  # collect a username/email to display in the username text box.
@@ -167,7 +173,7 @@ except FileNotFoundError:  # if no master.key file is found, that means this is 
                                                              "individual logins\nif desired.\n\nThis username/email "
                                                              "will show up\nautomatically when this program opens.")
         user_file.write(user_provided)
-    with open('master.key', 'wb') as master_file:  # we'll also need to create a master.key file here
+    with open('config.config', 'wb') as master_file:  # we'll also need to create a master.key file here
         password_provided = simpledialog.askstring('Welcome :)', "Please enter a master password.\n"
                                                                  "This will be what you use to access\nall of your "
                                                                  "other passwords, so\ndon't forget it!")
@@ -182,15 +188,16 @@ except FileNotFoundError:  # if no master.key file is found, that means this is 
         key = base64.urlsafe_b64encode(kdf.derive(password_encoded))  # can only use kdf once
         master_file.write(key)  # writes our key to the master.key file.
 
-    with open('fern.key', 'wb') as k_file:  # we'll also need to create a fernet.key file to encrypt and decrypt data
+    with open('nerf.config', 'wb') as k_file:  # we'll also need to create a fernet key file to encrypt and decrypt data
+        # the name is stupid to obscure the fact that it's an encryption key.
         key = Fernet.generate_key()
         k_file.write(key)
 
 finally:  # executes after both the try and except above. We'll use this to gather and store our keys
-    with open('salt.key', 'rb') as s:  # reads salt.key
+    with open('gui.config', 'rb') as s:  # reads salt file
         salt = s.read()
 
-    with open('fern.key', 'rb') as f:  # reads fernet.key
+    with open('nerf.config', 'rb') as f:  # reads fernet key
         key = f.read()
         fern = Fernet(key)
 
