@@ -138,7 +138,6 @@ web_ent.focus()
 em_lab = Label(text="E-Mail/Username:", highlightthickness=0)
 em_lab.grid(row=2, column=0)
 em_ent = Entry(width=36, highlightthickness=0)
-# Adds a default email to the email input. Swap this for your own email to make life easier!
 em_ent.insert(0, "user@example.com")
 em_ent.grid(row=2, column=1, columnspan=2)
 
